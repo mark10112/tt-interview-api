@@ -13,12 +13,14 @@ export const logger = pino({
 });
 
 // Initialize Redis Client
-export const redis = new Redis(process.env.REDIS_URL!, {
+const redisUrl = new URL(process.env.REDIS_URL ?? 'redis://localhost:6379');
+export const redis = new Redis({
+  host: redisUrl.hostname,
+  port: Number(redisUrl.port) || 6380,
+  password: redisUrl.password ? decodeURIComponent(redisUrl.password) : undefined,
+  tls: redisUrl.protocol === 'rediss:' ? { rejectUnauthorized: false } : undefined,
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
-  tls: {
-    rejectUnauthorized: false,
-  },
 });
 
 redis.on('error', (err) => {

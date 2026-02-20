@@ -75,19 +75,15 @@ export class EvacuationController {
         return;
       }
 
-      // Ensure we don't evacuate more people than actually exist in the zone
-      const maxPossibleEvacuees = status.RemainingPeople;
-      const actualEvacueesMoved = Math.min(parsedData.EvacueesMoved, maxPossibleEvacuees);
-
-      // Update calculations
-      const newTotalEvacuated = status.TotalEvacuated + actualEvacueesMoved;
-      const newRemainingPeople = status.RemainingPeople - actualEvacueesMoved;
+      // Ensure we don't evacuate more people than the zone originally had
+      const newTotalEvacuated = Math.min(status.TotalEvacuated + parsedData.EvacueesMoved, zone.NumberOfPeople);
+      const newRemainingPeople = zone.NumberOfPeople - newTotalEvacuated;
 
       status.TotalEvacuated = newTotalEvacuated;
       status.RemainingPeople = newRemainingPeople;
 
       await DataRepository.updateStatus(status);
-      logger.info({ zoneId: parsedData.ZoneID, vehicleId: parsedData.VehicleID, requestedEvacuees: parsedData.EvacueesMoved, actualEvacueesMoved }, 'Updated evacuation status');
+      logger.info({ zoneId: parsedData.ZoneID, vehicleId: parsedData.VehicleID, requestedEvacuees: parsedData.EvacueesMoved }, 'Updated evacuation status');
       
       res.status(200).json(status);
     } catch (err) {

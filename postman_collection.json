@@ -1,0 +1,267 @@
+{
+	"info": {
+		"_postman_id": "a90f1118-c2b6-4ff6-baf5-812300b95d03",
+		"name": "Evacuation Planning API",
+		"description": "Test scenarios for the Evacuation Planning and Monitoring API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "01. Clear All Data (Reset)",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/evacuations/clear",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"evacuations",
+						"clear"
+					]
+				},
+				"description": "Clears all evacuation data to start from a clean state."
+			},
+			"response": []
+		},
+		{
+			"name": "02. Add Evacuation Zone 1 (High Urgency)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"ZoneID\": \"Z1\",\n    \"LocationCoordinates\": {\"latitude\": 13.7563, \"longitude\": 100.5018},\n    \"NumberOfPeople\": 100,\n    \"UrgencyLevel\": 4\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/evacuation-zones",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"evacuation-zones"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "03. Add Evacuation Zone 2 (Critical Urgency)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"ZoneID\": \"Z2\",\n    \"LocationCoordinates\": {\"latitude\": 13.7367, \"longitude\": 100.5231},\n    \"NumberOfPeople\": 50,\n    \"UrgencyLevel\": 5\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/evacuation-zones",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"evacuation-zones"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "04. Add Vehicle 1 (Bus)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"VehicleID\": \"V1\",\n    \"Capacity\": 40,\n    \"Type\": \"bus\",\n    \"LocationCoordinates\": {\"latitude\": 13.7650, \"longitude\": 100.5381},\n    \"Speed\": 60\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/vehicles",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"vehicles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "05. Add Vehicle 2 (Van)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"VehicleID\": \"V2\",\n    \"Capacity\": 20,\n    \"Type\": \"van\",\n    \"LocationCoordinates\": {\"latitude\": 13.7320, \"longitude\": 100.5200},\n    \"Speed\": 50\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/vehicles",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"vehicles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "06. Generate Evacuation Plan",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/evacuations/plan",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"evacuations",
+						"plan"
+					]
+				},
+				"description": "Generates a plan prioritizing Zone Z2 (Urgency 5) over Zone Z1 (Urgency 4)."
+			},
+			"response": []
+		},
+		{
+			"name": "07. Check Evacuation Status (Initial)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/evacuations/status",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"evacuations",
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "08. Update Status (Z2 - 20 Evacuated)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"ZoneID\": \"Z2\",\n    \"VehicleID\": \"V2\",\n    \"EvacueesMoved\": 20\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/evacuations/update",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"evacuations",
+						"update"
+					]
+				},
+				"description": "Simulate the van returning from Zone 2"
+			},
+			"response": []
+		},
+		{
+			"name": "09. Update Status (Z1 - 40 Evacuated)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"ZoneID\": \"Z1\",\n    \"VehicleID\": \"V1\",\n    \"EvacueesMoved\": 40\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/evacuations/update",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"evacuations",
+						"update"
+					]
+				},
+				"description": "Simulate the bus returning from Zone 1"
+			},
+			"response": []
+		},
+		{
+			"name": "10. Check Evacuation Status (After Updates)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/evacuations/status",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"evacuations",
+						"status"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+}

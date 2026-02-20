@@ -18,6 +18,7 @@ const redisPassword = process.env.REDIS_PASSWORD ?? (redisUrl.password ? decodeU
 export const redis = new Redis({
   host: redisUrl.hostname,
   port: Number(redisUrl.port) || 6380,
+  username: redisUrl.username || undefined,
   password: redisPassword,
   tls: redisUrl.protocol === 'rediss:' ? { rejectUnauthorized: false, minVersion: 'TLSv1.2' } : undefined,
   maxRetriesPerRequest: null,

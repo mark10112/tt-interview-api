@@ -7,7 +7,8 @@
     "test": "jest",
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "test:e2e": "playwright test"
   },
   "keywords": [],
   "author": "",

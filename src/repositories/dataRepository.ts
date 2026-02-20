@@ -1,16 +1,20 @@
 import { redis } from '../utils/config';
+import { getDb } from '../utils/database';
 import { EvacuationZone, Vehicle, EvacuationAssignment, EvacuationStatus } from '../models';
 
-const ZONES_KEY = 'evacuation:zones';
-const VEHICLES_KEY = 'evacuation:vehicles';
 const STATUS_KEY = 'evacuation:status';
-const PLANS_KEY = 'evacuation:plans';
 
 export class DataRepository {
-  // Zones
+  // Zones (SQLite)
   static async addZone(zone: EvacuationZone): Promise<void> {
-    await redis.hset(ZONES_KEY, zone.ZoneID, JSON.stringify(zone));
-    // Initialize status for the new zone
+    const db = await getDb();
+    
+    await db.run(
+      'INSERT INTO zones (ZoneID, Latitude, Longitude, NumberOfPeople, UrgencyLevel) VALUES (?, ?, ?, ?, ?)',
+      [zone.ZoneID, zone.LocationCoordinates.latitude, zone.LocationCoordinates.longitude, zone.NumberOfPeople, zone.UrgencyLevel]
+    );
+
+    // Initialize status for the new zone in Redis (Monitoring requirement)
     const status: EvacuationStatus = {
       ZoneID: zone.ZoneID,
       TotalEvacuated: 0,
@@ -20,36 +24,92 @@ export class DataRepository {
   }
 
   static async getZones(): Promise<EvacuationZone[]> {
-    const data = await redis.hgetall(ZONES_KEY);
-    return Object.values(data).map(item => JSON.parse(item));
+    const db = await getDb();
+    const rows = await db.all('SELECT * FROM zones');
+    
+    return rows.map(row => ({
+      ZoneID: row.ZoneID,
+      LocationCoordinates: {
+        latitude: row.Latitude,
+        longitude: row.Longitude
+      },
+      NumberOfPeople: row.NumberOfPeople,
+      UrgencyLevel: row.UrgencyLevel
+    }));
   }
 
   static async getZone(zoneId: string): Promise<EvacuationZone | null> {
-    const data = await redis.hget(ZONES_KEY, zoneId);
-    return data ? JSON.parse(data) : null;
+    const db = await getDb();
+    const row = await db.get('SELECT * FROM zones WHERE ZoneID = ?', [zoneId]);
+    
+    if (!row) return null;
+
+    return {
+      ZoneID: row.ZoneID,
+      LocationCoordinates: {
+        latitude: row.Latitude,
+        longitude: row.Longitude
+      },
+      NumberOfPeople: row.NumberOfPeople,
+      UrgencyLevel: row.UrgencyLevel
+    };
   }
 
-  // Vehicles
+  // Vehicles (SQLite)
   static async addVehicle(vehicle: Vehicle): Promise<void> {
-    await redis.hset(VEHICLES_KEY, vehicle.VehicleID, JSON.stringify(vehicle));
+    const db = await getDb();
+    await db.run(
+      'INSERT INTO vehicles (VehicleID, Capacity, Type, Latitude, Longitude, Speed) VALUES (?, ?, ?, ?, ?, ?)',
+      [vehicle.VehicleID, vehicle.Capacity, vehicle.Type, vehicle.LocationCoordinates.latitude, vehicle.LocationCoordinates.longitude, vehicle.Speed]
+    );
   }
 
   static async getVehicles(): Promise<Vehicle[]> {
-    const data = await redis.hgetall(VEHICLES_KEY);
-    return Object.values(data).map(item => JSON.parse(item));
+    const db = await getDb();
+    const rows = await db.all('SELECT * FROM vehicles');
+    
+    return rows.map(row => ({
+      VehicleID: row.VehicleID,
+      Capacity: row.Capacity,
+      Type: row.Type,
+      LocationCoordinates: {
+        latitude: row.Latitude,
+        longitude: row.Longitude
+      },
+      Speed: row.Speed
+    }));
   }
 
-  // Plans (Assignments)
+  // Plans (Assignments) (SQLite)
   static async savePlan(assignments: EvacuationAssignment[]): Promise<void> {
-    await redis.set(PLANS_KEY, JSON.stringify(assignments));
+    const db = await getDb();
+    
+    // Clear existing plans before saving a new one
+    await db.run('DELETE FROM plans');
+
+    for (const assignment of assignments) {
+      await db.run(
+        'INSERT INTO plans (ZoneID, VehicleID, ETA, NumberOfPeople) VALUES (?, ?, ?, ?)',
+        [assignment.ZoneID, assignment.VehicleID, assignment.ETA, assignment.NumberOfPeople]
+      );
+    }
   }
 
   static async getPlan(): Promise<EvacuationAssignment[] | null> {
-    const data = await redis.get(PLANS_KEY);
-    return data ? JSON.parse(data) : null;
+    const db = await getDb();
+    const rows = await db.all('SELECT * FROM plans');
+    
+    if (rows.length === 0) return null;
+
+    return rows.map(row => ({
+      ZoneID: row.ZoneID,
+      VehicleID: row.VehicleID,
+      ETA: row.ETA,
+      NumberOfPeople: row.NumberOfPeople
+    }));
   }
 
-  // Status
+  // Status (Redis - as per requirement for real-time monitoring)
   static async getStatuses(): Promise<EvacuationStatus[]> {
     const data = await redis.hgetall(STATUS_KEY);
     return Object.values(data).map(item => JSON.parse(item));
@@ -66,6 +126,11 @@ export class DataRepository {
 
   // Clear All
   static async clearAll(): Promise<void> {
-    await redis.del(ZONES_KEY, VEHICLES_KEY, STATUS_KEY, PLANS_KEY);
+    const db = await getDb();
+    await db.run('DELETE FROM zones');
+    await db.run('DELETE FROM vehicles');
+    await db.run('DELETE FROM plans');
+    
+    await redis.del(STATUS_KEY);
   }
 }

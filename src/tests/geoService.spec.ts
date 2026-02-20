@@ -1,5 +1,5 @@
 import { GeoService } from '../services/geoService';
-import { LocationCoordinates } from '../models/schemas';
+import { LocationCoordinates } from '../models';
 
 describe('GeoService', () => {
   describe('haversineDistance', () => {

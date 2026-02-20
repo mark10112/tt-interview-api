@@ -27,4 +27,8 @@ COPY package*.json ./
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Copy startup script
+COPY start.sh ./
+RUN chmod +x start.sh
+
+CMD ["./start.sh"]

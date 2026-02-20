@@ -18,7 +18,7 @@ export const redis = new Redis({
   host: redisUrl.hostname,
   port: Number(redisUrl.port) || 6380,
   password: redisUrl.password ? decodeURIComponent(redisUrl.password) : undefined,
-  tls: redisUrl.protocol === 'rediss:' ? { rejectUnauthorized: false } : undefined,
+  tls: redisUrl.protocol === 'rediss:' ? { rejectUnauthorized: false, minVersion: 'TLSv1.2' } : undefined,
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
 });

@@ -1,13 +1,15 @@
-name: Deploy Node.js to Azure Web App
+name: Build and deploy container to Azure Web App
 
 on:
   push:
     branches:
       - master
+  workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: 'tt-evacuation-api'    # set this to your application's name
-  NODE_VERSION: '18.x'                      # set this to the node version to use
+  AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+  ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+  IMAGE_NAME: tt-interview-api
 
 jobs:
   build:
@@ -16,31 +18,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v3
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: npm install, build, and test
-        run: |
-          npm install
-          npm run build
-          npm run test
-      
-      # (Optional) You can run E2E tests here if you have a Redis service running in the pipeline
-      # - name: Run E2E tests
-      #   run: |
-      #     npx playwright install --with-deps
-      #     npm run test:e2e
-
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
+      - name: Build and push Docker image to ACR
+        uses: docker/build-push-action@v5
         with:
-          name: node-app
-          path: release.zip
+          context: .
+          push: true
+          tags: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          file: ./Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
@@ -50,18 +44,14 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+      - name: Log in to Azure
+        uses: azure/login@v2
         with:
-          name: node-app
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
+          images: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}

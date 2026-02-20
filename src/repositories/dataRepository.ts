@@ -1,5 +1,5 @@
 import { redis } from '../utils/config';
-import { EvacuationZone, Vehicle, EvacuationAssignment, EvacuationStatus } from '../models/schemas';
+import { EvacuationZone, Vehicle, EvacuationAssignment, EvacuationStatus } from '../models';
 
 const ZONES_KEY = 'evacuation:zones';
 const VEHICLES_KEY = 'evacuation:vehicles';

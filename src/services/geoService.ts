@@ -1,4 +1,4 @@
-import { LocationCoordinates } from '../models/schemas';
+import { LocationCoordinates } from '../models';
 
 export class GeoService {
   /**

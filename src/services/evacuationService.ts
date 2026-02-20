@@ -1,6 +1,6 @@
 import { DataRepository } from '../repositories/dataRepository';
 import { GeoService } from './geoService';
-import { EvacuationZone, Vehicle, EvacuationAssignment, EvacuationStatus } from '../models/schemas';
+import { EvacuationZone, Vehicle, EvacuationAssignment, EvacuationStatus } from '../models';
 
 export class EvacuationService {
   /**

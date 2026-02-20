@@ -1,31 +1,5 @@
 import { z } from 'zod';
 
-export const LocationCoordinatesSchema = z.object({
-  latitude: z.number(),
-  longitude: z.number(),
-});
-
-export type LocationCoordinates = z.infer<typeof LocationCoordinatesSchema>;
-
-export const EvacuationZoneSchema = z.object({
-  ZoneID: z.string(),
-  LocationCoordinates: LocationCoordinatesSchema,
-  NumberOfPeople: z.number().int().positive(),
-  UrgencyLevel: z.number().int().min(1).max(5),
-});
-
-export type EvacuationZone = z.infer<typeof EvacuationZoneSchema>;
-
-export const VehicleSchema = z.object({
-  VehicleID: z.string(),
-  Capacity: z.number().int().positive(),
-  Type: z.string(),
-  LocationCoordinates: LocationCoordinatesSchema,
-  Speed: z.number().positive(),
-});
-
-export type Vehicle = z.infer<typeof VehicleSchema>;
-
 export const EvacuationAssignmentSchema = z.object({
   ZoneID: z.string(),
   VehicleID: z.string(),

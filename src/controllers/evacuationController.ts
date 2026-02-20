@@ -5,7 +5,7 @@ import {
   EvacuationZoneSchema, 
   VehicleSchema, 
   UpdateEvacuationSchema 
-} from '../models/schemas';
+} from '../models';
 import { logger } from '../utils/config';
 
 export class EvacuationController {

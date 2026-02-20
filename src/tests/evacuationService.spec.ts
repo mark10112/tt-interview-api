@@ -1,7 +1,7 @@
 import { EvacuationService } from '../services/evacuationService';
 import { DataRepository } from '../repositories/dataRepository';
 import { GeoService } from '../services/geoService';
-import { EvacuationZone, Vehicle, EvacuationStatus } from '../models/schemas';
+import { EvacuationZone, Vehicle, EvacuationStatus } from '../models';
 
 jest.mock('../utils/config', () => ({
   logger: { info: jest.fn(), error: jest.fn() },

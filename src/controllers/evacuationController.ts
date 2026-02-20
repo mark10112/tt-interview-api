@@ -68,21 +68,26 @@ export class EvacuationController {
       const parsedData = UpdateEvacuationSchema.parse(req.body);
       
       const status = await DataRepository.getStatus(parsedData.ZoneID);
+      const zone = await DataRepository.getZone(parsedData.ZoneID);
       
-      if (!status) {
+      if (!status || !zone) {
         res.status(404).json({ error: 'Zone status not found' });
         return;
       }
 
+      // Ensure we don't evacuate more people than actually exist in the zone
+      const maxPossibleEvacuees = status.RemainingPeople;
+      const actualEvacueesMoved = Math.min(parsedData.EvacueesMoved, maxPossibleEvacuees);
+
       // Update calculations
-      const newTotalEvacuated = status.TotalEvacuated + parsedData.EvacueesMoved;
-      const newRemainingPeople = Math.max(0, status.RemainingPeople - parsedData.EvacueesMoved);
+      const newTotalEvacuated = status.TotalEvacuated + actualEvacueesMoved;
+      const newRemainingPeople = status.RemainingPeople - actualEvacueesMoved;
 
       status.TotalEvacuated = newTotalEvacuated;
       status.RemainingPeople = newRemainingPeople;
 
       await DataRepository.updateStatus(status);
-      logger.info({ zoneId: parsedData.ZoneID, vehicleId: parsedData.VehicleID, evacueesMoved: parsedData.EvacueesMoved }, 'Updated evacuation status');
+      logger.info({ zoneId: parsedData.ZoneID, vehicleId: parsedData.VehicleID, requestedEvacuees: parsedData.EvacueesMoved, actualEvacueesMoved }, 'Updated evacuation status');
       
       res.status(200).json(status);
     } catch (err) {

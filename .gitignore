@@ -9,3 +9,5 @@ dist/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+/src/generated/prisma

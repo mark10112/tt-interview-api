@@ -13,9 +13,7 @@ export const logger = pino({
 });
 
 // Initialize Redis Client
-const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-
-export const redis = new Redis(redisUrl, {
+export const redis = new Redis(process.env.REDIS_URL!, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
 });

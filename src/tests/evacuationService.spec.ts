@@ -1,13 +1,17 @@
-import { EvacuationService } from '../services/evacuationService';
-import { DataRepository } from '../repositories/dataRepository';
-import { GeoService } from '../services/geoService';
+import { EvacuationService } from '../services';
+import { ZoneRepository, VehicleRepository, PlanRepository, StatusRepository } from '../repositories';
+import { GeoService } from '../services';
 import { EvacuationZone, Vehicle, EvacuationStatus } from '../models';
+import { redis } from '../utils/config';
 
 jest.mock('../utils/config', () => ({
   logger: { info: jest.fn(), error: jest.fn() },
   redis: { on: jest.fn(), quit: jest.fn() }
 }));
-jest.mock('../repositories/dataRepository');
+jest.mock('../repositories/zoneRepository');
+jest.mock('../repositories/vehicleRepository');
+jest.mock('../repositories/planRepository');
+jest.mock('../repositories/statusRepository');
 jest.mock('../services/geoService');
 
 describe('EvacuationService', () => {
@@ -17,7 +21,6 @@ describe('EvacuationService', () => {
 
   afterAll(async () => {
     // Disconnect Redis to avoid jest process hanging
-    const { redis } = require('../utils/config');
     await redis.quit();
   });
 
@@ -53,10 +56,10 @@ describe('EvacuationService', () => {
         { ZoneID: 'Z2', TotalEvacuated: 0, RemainingPeople: 30 },
       ];
 
-      (DataRepository.getZones as jest.Mock).mockResolvedValue(mockZones);
-      (DataRepository.getVehicles as jest.Mock).mockResolvedValue(mockVehicles);
-      (DataRepository.getStatuses as jest.Mock).mockResolvedValue(mockStatuses);
-      (DataRepository.savePlan as jest.Mock).mockResolvedValue(undefined);
+      (ZoneRepository.getZones as jest.Mock).mockResolvedValue(mockZones);
+      (VehicleRepository.getVehicles as jest.Mock).mockResolvedValue(mockVehicles);
+      (StatusRepository.getStatuses as jest.Mock).mockResolvedValue(mockStatuses);
+      (PlanRepository.savePlan as jest.Mock).mockResolvedValue(undefined);
 
       (GeoService.haversineDistance as jest.Mock).mockReturnValue(10);
       (GeoService.calculateETA as jest.Mock).mockReturnValue('10 minutes');
@@ -69,7 +72,7 @@ describe('EvacuationService', () => {
       expect(plan[0].NumberOfPeople).toBe(30); // 30 needed, 40 capacity
       expect(plan[0].ETA).toBe('10 minutes');
 
-      expect(DataRepository.savePlan).toHaveBeenCalledWith(plan);
+      expect(PlanRepository.savePlan).toHaveBeenCalledWith(plan);
     });
 
     it('should allocate multiple vehicles if needed for a single zone', async () => {
@@ -110,10 +113,10 @@ describe('EvacuationService', () => {
         { ZoneID: 'Z1', TotalEvacuated: 0, RemainingPeople: 100 },
       ];
 
-      (DataRepository.getZones as jest.Mock).mockResolvedValue(mockZones);
-      (DataRepository.getVehicles as jest.Mock).mockResolvedValue(mockVehicles);
-      (DataRepository.getStatuses as jest.Mock).mockResolvedValue(mockStatuses);
-      (DataRepository.savePlan as jest.Mock).mockResolvedValue(undefined);
+      (ZoneRepository.getZones as jest.Mock).mockResolvedValue(mockZones);
+      (VehicleRepository.getVehicles as jest.Mock).mockResolvedValue(mockVehicles);
+      (StatusRepository.getStatuses as jest.Mock).mockResolvedValue(mockStatuses);
+      (PlanRepository.savePlan as jest.Mock).mockResolvedValue(undefined);
 
       (GeoService.haversineDistance as jest.Mock).mockReturnValue(10);
       (GeoService.calculateETA as jest.Mock).mockReturnValue('10 minutes');
@@ -145,10 +148,10 @@ describe('EvacuationService', () => {
         { ZoneID: 'Z1', TotalEvacuated: 0, RemainingPeople: 50 },
       ];
 
-      (DataRepository.getZones as jest.Mock).mockResolvedValue(mockZones);
-      (DataRepository.getVehicles as jest.Mock).mockResolvedValue(mockVehicles);
-      (DataRepository.getStatuses as jest.Mock).mockResolvedValue(mockStatuses);
-      (DataRepository.savePlan as jest.Mock).mockResolvedValue(undefined);
+      (ZoneRepository.getZones as jest.Mock).mockResolvedValue(mockZones);
+      (VehicleRepository.getVehicles as jest.Mock).mockResolvedValue(mockVehicles);
+      (StatusRepository.getStatuses as jest.Mock).mockResolvedValue(mockStatuses);
+      (PlanRepository.savePlan as jest.Mock).mockResolvedValue(undefined);
 
       const plan = await EvacuationService.generatePlan();
 
@@ -179,10 +182,10 @@ describe('EvacuationService', () => {
           { ZoneID: 'Z1', TotalEvacuated: 50, RemainingPeople: 0 }, // Fully evacuated
         ];
   
-        (DataRepository.getZones as jest.Mock).mockResolvedValue(mockZones);
-        (DataRepository.getVehicles as jest.Mock).mockResolvedValue(mockVehicles);
-        (DataRepository.getStatuses as jest.Mock).mockResolvedValue(mockStatuses);
-        (DataRepository.savePlan as jest.Mock).mockResolvedValue(undefined);
+        (ZoneRepository.getZones as jest.Mock).mockResolvedValue(mockZones);
+        (VehicleRepository.getVehicles as jest.Mock).mockResolvedValue(mockVehicles);
+        (StatusRepository.getStatuses as jest.Mock).mockResolvedValue(mockStatuses);
+        (PlanRepository.savePlan as jest.Mock).mockResolvedValue(undefined);
   
         const plan = await EvacuationService.generatePlan();
   

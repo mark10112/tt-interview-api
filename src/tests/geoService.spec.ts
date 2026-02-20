@@ -1,4 +1,4 @@
-import { GeoService } from '../services/geoService';
+import { GeoService } from '../services';
 import { LocationCoordinates } from '../models';
 
 describe('GeoService', () => {

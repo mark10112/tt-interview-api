@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Zone {
+  ZoneID        String @id
+  Latitude      Float
+  Longitude     Float
+  NumberOfPeople Int
+  UrgencyLevel  Int
+
+  @@map("zones")
+}
+
+model Vehicle {
+  VehicleID  String @id
+  Capacity   Int
+  Type       String
+  Latitude   Float
+  Longitude  Float
+  Speed      Float
+
+  @@map("vehicles")
+}
+
+model Plan {
+  id             Int    @id @default(autoincrement())
+  ZoneID         String
+  VehicleID      String
+  ETA            String
+  NumberOfPeople Int
+
+  @@map("plans")
+}

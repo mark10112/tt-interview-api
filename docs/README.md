@@ -58,6 +58,25 @@ docker-compose up -d
 
 ---
 
+## Tech Stack
+
+| ประเภท | เทคโนโลยี | เวอร์ชัน |
+|---|---|---|
+| Runtime | Node.js | >= 18.0.0 |
+| Framework | Express | ^5.2.1 |
+| Language | TypeScript | ^5.9.3 |
+| ORM | Prisma | ^7.4.1 |
+| Database (Persistent) | SQLite (via better-sqlite3) | ^12.6.2 |
+| Database (Cache) | Redis (via ioredis) | ^5.9.3 |
+| Validation | Zod | ^4.3.6 |
+| Geo Calculation | geolib | ^3.3.4 |
+| Logger | pino + pino-pretty | ^10.3.1 |
+| Testing | Jest + ts-jest | ^30.2.0 |
+| Containerization | Docker + Docker Compose | — |
+| CI/CD | GitHub Actions → Azure Web App | — |
+
+---
+
 ## Architecture Diagram
 
 ```
@@ -96,3 +115,17 @@ Plans)
 - **Vehicle Scoring Algorithm** — คะแนนต่ำ = ดีกว่า: `score = distance_km + capacity_penalty`
 - **Atomic Transaction** ใน `PlanRepository.savePlan` — ลบแผนเก่าและสร้างแผนใหม่ใน transaction เดียว
 - **Urgency-first Allocation** — โซนที่มี `UrgencyLevel` สูงกว่าได้รับยานพาหนะก่อน
+
+## หมายเหตุ
+
+### ส่วนที่ใช้ AI ช่วย
+- **เขียน Unit Tests** — ใช้ AI ช่วย generate test cases สำหรับ services และ repositories (Jest)
+- **เขียน Documentation** — ใช้ AI ช่วยร่างและจัดโครงสร้างไฟล์ docs ทั้งหมด
+- **Debug และ Fix Bugs** — ใช้ AI ช่วยวิเคราะห์ error และแนะนำแนวทางแก้ไข
+- **Boilerplate / Setup** — ใช้ AI ช่วยตั้งค่า Docker, GitHub Actions workflow, Prisma schema เบื้องต้น
+
+### ส่วนที่ไม่ได้ใช้ AI (เขียนเอง)
+- **Business Logic หลัก** — Vehicle Scoring Algorithm, Urgency-first Allocation, และ logic การจับคู่ยานพาหนะกับโซนใน `EvacuationService`
+- **Architecture Design** — การออกแบบ layered architecture (Controller → Service → Repository), การเลือก Tech Stack
+- **Data Model** — การออกแบบ Zod schemas และ Prisma models ให้สอดคล้องกับ requirement
+- **API Design** — การออกแบบ endpoints และ request/response format

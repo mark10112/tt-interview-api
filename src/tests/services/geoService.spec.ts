@@ -46,5 +46,9 @@ describe('GeoService', () => {
       expect(GeoService.calculateETA(90, 60)).toBe('1 hour 30 minutes');
       expect(GeoService.calculateETA(121, 60)).toBe('2 hours 1 minute');
     });
+
+    it('should return "0 minutes" when distance is 0 and speed is positive', () => {
+      expect(GeoService.calculateETA(0, 60)).toBe('0 minutes');
+    });
   });
 });

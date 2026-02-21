@@ -1,7 +1,10 @@
 name: Build and deploy container to Azure Web App
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI - Test"]
+    types:
+      - completed
     branches:
       - master
   workflow_dispatch:
@@ -14,6 +17,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - uses: actions/checkout@v4

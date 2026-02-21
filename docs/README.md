@@ -154,12 +154,19 @@ Plans)
 ## หมายเหตุ
 
 ### ส่วนที่ใช้ AI ช่วย
-- **เขียน Unit Tests** — ใช้ AI ช่วย generate test cases สำหรับ services และ repositories (Jest)
-- **เขียน Documentation** — ใช้ AI ช่วยร่างและจัดโครงสร้างไฟล์ docs ทั้งหมด
-- **Debug และ Fix Bugs** — ใช้ AI ช่วยวิเคราะห์ error และแนะนำแนวทางแก้ไข
-- **Boilerplate / Setup** — ใช้ AI ช่วยตั้งค่า Docker, GitHub Actions workflow, Prisma schema เบื้องต้น
+
+- **เขียน Unit Tests** — ใช้ AI ช่วย generate test cases สำหรับ controllers, services, repositories และ middlewares ด้วย Jest โดยครอบคลุม edge cases เช่น HttpError vs generic error, capacity penalty branches, และ Zod validation errors จนได้ coverage > 95% ในทุก metric (statements, branches, functions, lines)
+
+- **เขียน Documentation** — ใช้ AI ช่วยร่างและจัดโครงสร้างไฟล์ docs ทั้งหมด ได้แก่ `api.md`, `data-models.md`, `services.md`, `repositories.md`, `infrastructure.md`, `testing.md` รวมถึง README นี้ โดยเน้นให้อ่านง่ายและครบถ้วนสำหรับ reviewer
+
+- **Debug และ Fix Bugs** — ใช้ AI ช่วยวิเคราะห์ error ที่เกิดใน CI เช่น `Cannot find module '../generated/prisma'` (ต้องรัน `prisma generate` ก่อน) และ implicit `any` type ใน TypeScript strict mode
+
+- **Boilerplate / Setup** — ใช้ AI ช่วยตั้งค่าเบื้องต้นสำหรับ Docker (`Dockerfile`, `docker-compose.yml`), GitHub Actions workflows (`ci.yml`, `azure-deploy.yml`), Prisma schema, และ Jest config พร้อม coverage thresholds
 
 ### ส่วนที่ไม่ได้ใช้ AI (เขียนเอง)
-- **Business Logic หลัก** — Vehicle Scoring Algorithm, Urgency-first Allocation, และ logic การจับคู่ยานพาหนะกับโซนใน `EvacuationService`
-- **Architecture Design** — การออกแบบ layered architecture (Controller → Service → Repository), การเลือก Tech Stack
-- **Data Model** — การออกแบบ Zod schemas และ Prisma models ให้สอดคล้องกับ requirement
+
+- **Business Logic หลัก** — Vehicle Scoring Algorithm (`score = distKm + capacityPenalty`), Urgency-first Allocation (sort zones by `UrgencyLevel` descending), และ logic การจับคู่ยานพาหนะกับโซนแบบ greedy ใน `EvacuationService` รวมถึง cap logic ใน `updateStatus` (`Math.min(totalEvacuated + moved, numberOfPeople)`)
+
+- **Architecture Design** — การออกแบบ layered architecture (Controller → Service → Repository), การแบ่งความรับผิดชอบระหว่าง SQLite (persistent data) กับ Redis (real-time status), และการเลือก Tech Stack ให้เหมาะกับ requirement
+
+- **Data Model** — การออกแบบ Zod schemas และ Prisma models ให้สอดคล้องกับ requirement เช่น การ flatten `LocationCoordinates` เป็น `Latitude`/`Longitude` ใน DB แต่ใช้ nested object ใน application layer

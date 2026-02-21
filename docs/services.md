@@ -138,9 +138,9 @@ function scoreVehicle(vehicle: Vehicle, zone: EvacuationZone, needed: number) {
 
   const capacityPenalty =
     vehicle.Capacity < needed
-      ? VEHICLE_SCORE_PENALTY.UNDER_CAPACITY          // +10 ถ้า capacity ไม่พอ
+      ? VEHICLE_SCORE_PENALTY.UNDER_CAPACITY * (needed / vehicle.Capacity)  // proportional ถ้า capacity ไม่พอ
       : vehicle.Capacity > needed * VEHICLE_SCORE_PENALTY.OVER_CAPACITY_MULTIPLIER
-        ? VEHICLE_SCORE_PENALTY.OVER_CAPACITY          // +5 ถ้า capacity มากเกิน 2x
+        ? VEHICLE_SCORE_PENALTY.OVER_CAPACITY          // +10 ถ้า capacity มากเกิน 2x
         : 0;                                           // 0 ถ้า capacity พอดี
 
   return { score: distKm + capacityPenalty, distKm };
@@ -151,8 +151,8 @@ function scoreVehicle(vehicle: Vehicle, zone: EvacuationZone, needed: number) {
 
 | เงื่อนไข | Penalty | เหตุผล |
 |---|---|---|
-| `capacity < needed` | +10 | ยานพาหนะไม่พอรับคน ต้องใช้หลายเที่ยว |
-| `capacity > needed × 2` | +5 | ยานพาหนะใหญ่เกินไป สิ้นเปลือง |
+| `capacity < needed` | `+5 × (needed / capacity)` | Proportional — ยิ่งเล็กกว่า needed มาก ยิ่งโดน penalty สูง |
+| `capacity > needed × 2` | +10 | ยานพาหนะใหญ่เกินไป สิ้นเปลือง |
 | `needed ≤ capacity ≤ needed × 2` | 0 | พอดีหรือใกล้เคียง |
 
 **Score = ระยะทาง (km) + penalty**
@@ -165,13 +165,21 @@ function scoreVehicle(vehicle: Vehicle, zone: EvacuationZone, needed: number) {
 
 ```typescript
 function pickBestVehicle(vehicles: Vehicle[], zone: EvacuationZone, needed: number) {
-  return vehicles.reduce<{ index: number; distKm: number; score: number }>(
-    (best, vehicle, i) => {
-      const { score, distKm } = scoreVehicle(vehicle, zone, needed);
-      return score < best.score ? { index: i, distKm, score } : best;
-    },
-    { index: -1, distKm: 0, score: Infinity },
-  );
+  //initial values
+  let bestIndex = -1;
+  let bestDistKm = 0;
+  let bestScore = Infinity;
+
+  for (let i = 0; i < vehicles.length; i++) {
+    const { score, distKm } = scoreVehicle(vehicles[i], zone, needed);
+    if (score < bestScore) {
+      bestIndex = i;
+      bestDistKm = distKm;
+      bestScore = score;
+    }
+  }
+
+  return { index: bestIndex, distKm: bestDistKm, score: bestScore };
 }
 ```
 

@@ -22,7 +22,7 @@ export class GeoService {
       { latitude: coord1.latitude, longitude: coord1.longitude },
       { latitude: coord2.latitude, longitude: coord2.longitude },
     );
-    return convertDistance(meters, DISTANCE_UNIT);
+    return convertDistance(meters, DISTANCE_UNIT.KM);
   }
 
   /**

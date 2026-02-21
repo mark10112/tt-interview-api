@@ -10,12 +10,12 @@ import { VEHICLE_SCORE_PENALTY, ERROR_MESSAGES, HTTP_STATUS } from '../utils/con
  */
 function scoreVehicle(vehicle: Vehicle, zone: EvacuationZone, needed: number): { score: number; distKm: number } {
   const distKm = GeoService.haversineDistance(vehicle.LocationCoordinates, zone.LocationCoordinates);
-  const capacityPenalty =
-    vehicle.Capacity < needed
-      ? VEHICLE_SCORE_PENALTY.UNDER_CAPACITY
-      : vehicle.Capacity > needed * VEHICLE_SCORE_PENALTY.OVER_CAPACITY_MULTIPLIER
-        ? VEHICLE_SCORE_PENALTY.OVER_CAPACITY
-        : 0;
+const capacityPenalty =
+  vehicle.Capacity < needed
+    ? VEHICLE_SCORE_PENALTY.UNDER_CAPACITY * (needed / vehicle.Capacity)
+    : vehicle.Capacity > needed * VEHICLE_SCORE_PENALTY.OVER_CAPACITY_MULTIPLIER
+      ? VEHICLE_SCORE_PENALTY.OVER_CAPACITY
+      : 0;
   return { score: distKm + capacityPenalty, distKm };
 }
 
@@ -24,13 +24,21 @@ function scoreVehicle(vehicle: Vehicle, zone: EvacuationZone, needed: number): {
  * @returns Best vehicle index, distance, and score
  */
 function pickBestVehicle(vehicles: Vehicle[], zone: EvacuationZone, needed: number) {
-  return vehicles.reduce<{ index: number; distKm: number; score: number }>(
-    (best, vehicle, i) => {
-      const { score, distKm } = scoreVehicle(vehicle, zone, needed);
-      return score < best.score ? { index: i, distKm, score } : best;
-    },
-    { index: -1, distKm: 0, score: Infinity },
-  );
+  //initial values
+  let bestIndex = -1;
+  let bestDistKm = 0;
+  let bestScore = Infinity;
+
+  for (let i = 0; i < vehicles.length; i++) {
+    const { score, distKm } = scoreVehicle(vehicles[i], zone, needed);
+    if (score < bestScore) {
+      bestIndex = i;
+      bestDistKm = distKm;
+      bestScore = score;
+    }
+  }
+
+  return { index: bestIndex, distKm: bestDistKm, score: bestScore };
 }
 
 /**

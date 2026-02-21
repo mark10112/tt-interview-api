@@ -9,12 +9,14 @@ export const HTTP_STATUS = {
 } as const;
 
 export const VEHICLE_SCORE_PENALTY = {
-  UNDER_CAPACITY: 10,
-  OVER_CAPACITY: 5,
+  UNDER_CAPACITY: 5,
+  OVER_CAPACITY: 10,
   OVER_CAPACITY_MULTIPLIER: 2,
 } as const;
 
-export const DISTANCE_UNIT = 'km' as const;
+export const DISTANCE_UNIT = {
+  KM: 'km',
+} as const;
 
 
 export const REDIS_KEYS = {

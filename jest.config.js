@@ -12,4 +12,7 @@ module.exports = {
   transform: {
     ...tsJestTransformCfg,
   },
+  moduleNameMapper: {
+    '^ioredis$': '<rootDir>/__mocks__/ioredis.js',
+  },
 };

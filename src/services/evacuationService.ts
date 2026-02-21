@@ -4,6 +4,10 @@ import { EvacuationZone, Vehicle, EvacuationAssignment, EvacuationStatus, Update
 import { HttpError } from '../utils/errors';
 import { VEHICLE_SCORE_PENALTY, ERROR_MESSAGES, HTTP_STATUS } from '../utils/constants';
 
+/**
+ * Calculates a score for a vehicle based on distance and capacity fit
+ * Lower score = better vehicle (closer and better capacity match)
+ */
 function scoreVehicle(vehicle: Vehicle, zone: EvacuationZone, needed: number): { score: number; distKm: number } {
   const distKm = GeoService.haversineDistance(vehicle.LocationCoordinates, zone.LocationCoordinates);
   const capacityPenalty =
@@ -15,6 +19,10 @@ function scoreVehicle(vehicle: Vehicle, zone: EvacuationZone, needed: number): {
   return { score: distKm + capacityPenalty, distKm };
 }
 
+/**
+ * Selects the best vehicle from available options based on score
+ * @returns Best vehicle index, distance, and score
+ */
 function pickBestVehicle(vehicles: Vehicle[], zone: EvacuationZone, needed: number) {
   return vehicles.reduce<{ index: number; distKm: number; score: number }>(
     (best, vehicle, i) => {
@@ -25,6 +33,10 @@ function pickBestVehicle(vehicles: Vehicle[], zone: EvacuationZone, needed: numb
   );
 }
 
+/**
+ * Assigns vehicles to a zone based on remaining people to evacuate
+ * Prioritizes vehicles with best distance and capacity match
+ */
 function assignVehiclesToZone(
   zone: EvacuationZone,
   needed: number,
@@ -52,7 +64,15 @@ function assignVehiclesToZone(
   return results;
 }
 
+/**
+ * Service for managing evacuation plans and status updates
+ */
 export class EvacuationService {
+  /**
+   * Generates an evacuation plan by assigning vehicles to zones
+   * Zones are prioritized by urgency level
+   * @returns Array of vehicle-to-zone assignments
+   */
   static async generatePlan(): Promise<EvacuationAssignment[]> {
     const [zones, vehicles, statuses] = await Promise.all([
       ZoneRepository.getZones(),
@@ -69,7 +89,7 @@ export class EvacuationService {
     const assignments: EvacuationAssignment[] = [];
 
     for (const zone of sortedZones) {
-      const needed = remaining[zone.ZoneID] ?? 0;
+      const needed = remaining[zone.ZoneID] ?? zone.NumberOfPeople;
       assignments.push(...assignVehiclesToZone(zone, needed, availableVehicles));
     }
 
@@ -77,10 +97,18 @@ export class EvacuationService {
     return assignments;
   }
 
+  /**
+   * Gets current evacuation status for all zones
+   */
   static async getStatuses(): Promise<EvacuationStatus[]> {
     return StatusRepository.getStatuses();
   }
 
+  /**
+   * Updates evacuation status for a specific zone
+   * @param input Zone ID and number of evacuees moved
+   * @returns Updated evacuation status
+   */
   static async updateStatus(input: UpdateEvacuation): Promise<EvacuationStatus> {
     const [status, zone] = await Promise.all([
       StatusRepository.getStatus(input.ZoneID),
@@ -99,6 +127,9 @@ export class EvacuationService {
     return status;
   }
 
+  /**
+   * Clears all zones, vehicles, and statuses from the system
+   */
   static async clearAll(): Promise<void> {
     await Promise.all([
       ZoneRepository.clearZones(),

@@ -1,8 +1,8 @@
-import { StatusRepository } from '../repositories/statusRepository';
-import { EvacuationStatus } from '../models';
-import { redis } from '../utils/config';
+import { StatusRepository } from '../../repositories/statusRepository';
+import { EvacuationStatus } from '../../models';
+import { redis } from '../../utils/config';
 
-jest.mock('../utils/config', () => ({
+jest.mock('../../utils/config', () => ({
   logger: { info: jest.fn(), error: jest.fn() },
   redis: {
     on: jest.fn(),

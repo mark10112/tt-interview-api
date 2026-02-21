@@ -1,13 +1,13 @@
-import { ZoneService } from '../services';
-import { ZoneRepository } from '../repositories/zoneRepository';
-import { EvacuationZone } from '../models';
-import { HttpError } from '../utils/errors';
+import { ZoneService } from '../../services';
+import { ZoneRepository } from '../../repositories/zoneRepository';
+import { EvacuationZone } from '../../models';
+import { HttpError } from '../../utils/errors';
 
-jest.mock('../utils/config', () => ({
+jest.mock('../../utils/config', () => ({
   logger: { info: jest.fn(), error: jest.fn() },
   redis: { on: jest.fn(), quit: jest.fn() },
 }));
-jest.mock('../repositories/zoneRepository');
+jest.mock('../../repositories/zoneRepository');
 
 const mockZone: EvacuationZone = {
   ZoneID: 'Z1',

@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import { ErrorHandler } from '../middlewares/errorHandler';
-import { HttpError } from '../utils/errors';
-import { logger } from '../utils/config';
+import { ErrorHandler } from '../../middlewares/errorHandler';
+import { HttpError } from '../../utils/errors';
+import { logger } from '../../utils/config';
 
-jest.mock('../utils/config', () => ({
+jest.mock('../../utils/config', () => ({
   logger: {
     error: jest.fn(),
   },

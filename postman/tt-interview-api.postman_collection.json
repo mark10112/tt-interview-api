@@ -226,6 +226,126 @@
           "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "pm.test('Empty', () => pm.expect(pm.response.json()).to.eql([]));"] } }]
         }
       ]
+    },
+    {
+      "name": "Complex E2E Flow",
+      "item": [
+        {
+          "name": "1. Clear All",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/evacuations/clear" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('204', () => pm.response.to.have.status(204));"] } }]
+        },
+        {
+          "name": "2. Add Zone Z1 (Urgency 5, 150 people)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/evacuation-zones", "body": { "mode": "raw", "raw": "{\n  \"ZoneID\": \"Z1\",\n  \"LocationCoordinates\": { \"latitude\": 13.7563, \"longitude\": 100.5018 },\n  \"NumberOfPeople\": 150,\n  \"UrgencyLevel\": 5\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "3. Add Zone Z2 (Urgency 4, 100 people)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/evacuation-zones", "body": { "mode": "raw", "raw": "{\n  \"ZoneID\": \"Z2\",\n  \"LocationCoordinates\": { \"latitude\": 14.0, \"longitude\": 101.0 },\n  \"NumberOfPeople\": 100,\n  \"UrgencyLevel\": 4\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "4. Add Zone Z3 (Urgency 3, 80 people)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/evacuation-zones", "body": { "mode": "raw", "raw": "{\n  \"ZoneID\": \"Z3\",\n  \"LocationCoordinates\": { \"latitude\": 13.5, \"longitude\": 100.0 },\n  \"NumberOfPeople\": 80,\n  \"UrgencyLevel\": 3\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "5. Add Zone Z4 (Urgency 2, 60 people)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/evacuation-zones", "body": { "mode": "raw", "raw": "{\n  \"ZoneID\": \"Z4\",\n  \"LocationCoordinates\": { \"latitude\": 14.2, \"longitude\": 101.2 },\n  \"NumberOfPeople\": 60,\n  \"UrgencyLevel\": 2\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "6. Add Vehicle V1 (Bus, Capacity 60)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/vehicles", "body": { "mode": "raw", "raw": "{\n  \"VehicleID\": \"V1\",\n  \"Capacity\": 60,\n  \"Type\": \"bus\",\n  \"LocationCoordinates\": { \"latitude\": 13.8, \"longitude\": 100.6 },\n  \"Speed\": 60\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "7. Add Vehicle V2 (Bus, Capacity 50)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/vehicles", "body": { "mode": "raw", "raw": "{\n  \"VehicleID\": \"V2\",\n  \"Capacity\": 50,\n  \"Type\": \"bus\",\n  \"LocationCoordinates\": { \"latitude\": 14.1, \"longitude\": 101.1 },\n  \"Speed\": 80\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "8. Add Vehicle V3 (Truck, Capacity 30)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/vehicles", "body": { "mode": "raw", "raw": "{\n  \"VehicleID\": \"V3\",\n  \"Capacity\": 30,\n  \"Type\": \"truck\",\n  \"LocationCoordinates\": { \"latitude\": 13.6, \"longitude\": 100.1 },\n  \"Speed\": 90\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "9. Add Vehicle V4 (Bus, Capacity 40)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/vehicles", "body": { "mode": "raw", "raw": "{\n  \"VehicleID\": \"V4\",\n  \"Capacity\": 40,\n  \"Type\": \"bus\",\n  \"LocationCoordinates\": { \"latitude\": 13.9, \"longitude\": 100.9 },\n  \"Speed\": 70\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "10. Add Vehicle V5 (Truck, Capacity 25)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/vehicles", "body": { "mode": "raw", "raw": "{\n  \"VehicleID\": \"V5\",\n  \"Capacity\": 25,\n  \"Type\": \"truck\",\n  \"LocationCoordinates\": { \"latitude\": 14.3, \"longitude\": 101.3 },\n  \"Speed\": 85\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "11. Add Vehicle V6 (Bus, Capacity 55)",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/vehicles", "body": { "mode": "raw", "raw": "{\n  \"VehicleID\": \"V6\",\n  \"Capacity\": 55,\n  \"Type\": \"bus\",\n  \"LocationCoordinates\": { \"latitude\": 13.7, \"longitude\": 100.5 },\n  \"Speed\": 65\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('201', () => pm.response.to.have.status(201));"] } }]
+        },
+        {
+          "name": "12. Generate Initial Plan",
+          "request": { "method": "POST", "header": [], "url": "{{baseUrl}}/api/evacuations/plan" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const plan = pm.response.json(); pm.test('Has assignments', () => pm.expect(plan.length).to.be.above(0));", "pm.test('Z1 assigned first (highest urgency)', () => pm.expect(plan[0].ZoneID).to.eql('Z1'));", "pm.collectionVariables.set('initialPlanCount', plan.length);"] } }]
+        },
+        {
+          "name": "13. Check Initial Status",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/evacuations/status" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const statuses = pm.response.json(); pm.test('Has 4 zones', () => pm.expect(statuses.length).to.eql(4));", "statuses.forEach(s => { pm.test('RemainingPeople = NumberOfPeople', () => pm.expect(s.RemainingPeople).to.be.above(0)); });"] } }]
+        },
+        {
+          "name": "14. Update Z1 - V1 picks up 60 people",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/evacuations/update", "body": { "mode": "raw", "raw": "{\n  \"ZoneID\": \"Z1\",\n  \"VehicleID\": \"V1\",\n  \"EvacueesMoved\": 60\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const b = pm.response.json(); pm.test('TotalEvacuated = 60', () => pm.expect(b.TotalEvacuated).to.eql(60));", "pm.test('RemainingPeople = 90', () => pm.expect(b.RemainingPeople).to.eql(90));"] } }]
+        },
+        {
+          "name": "15. Update Z2 - V2 picks up 50 people",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/evacuations/update", "body": { "mode": "raw", "raw": "{\n  \"ZoneID\": \"Z2\",\n  \"VehicleID\": \"V2\",\n  \"EvacueesMoved\": 50\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const b = pm.response.json(); pm.test('TotalEvacuated = 50', () => pm.expect(b.TotalEvacuated).to.eql(50));", "pm.test('RemainingPeople = 50', () => pm.expect(b.RemainingPeople).to.eql(50));"] } }]
+        },
+        {
+          "name": "16. Update Z3 - V3 picks up 30 people",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/evacuations/update", "body": { "mode": "raw", "raw": "{\n  \"ZoneID\": \"Z3\",\n  \"VehicleID\": \"V3\",\n  \"EvacueesMoved\": 30\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const b = pm.response.json(); pm.test('TotalEvacuated = 30', () => pm.expect(b.TotalEvacuated).to.eql(30));", "pm.test('RemainingPeople = 50', () => pm.expect(b.RemainingPeople).to.eql(50));"] } }]
+        },
+        {
+          "name": "17. Check Status After Partial Evacuation",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/evacuations/status" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const statuses = pm.response.json();", "const z1 = statuses.find(s => s.ZoneID === 'Z1');", "const z2 = statuses.find(s => s.ZoneID === 'Z2');", "const z3 = statuses.find(s => s.ZoneID === 'Z3');", "const z4 = statuses.find(s => s.ZoneID === 'Z4');", "pm.test('Z1: 60 evacuated, 90 remaining', () => { pm.expect(z1.TotalEvacuated).to.eql(60); pm.expect(z1.RemainingPeople).to.eql(90); });", "pm.test('Z2: 50 evacuated, 50 remaining', () => { pm.expect(z2.TotalEvacuated).to.eql(50); pm.expect(z2.RemainingPeople).to.eql(50); });", "pm.test('Z3: 30 evacuated, 50 remaining', () => { pm.expect(z3.TotalEvacuated).to.eql(30); pm.expect(z3.RemainingPeople).to.eql(50); });", "pm.test('Z4: 0 evacuated, 60 remaining', () => { pm.expect(z4.TotalEvacuated).to.eql(0); pm.expect(z4.RemainingPeople).to.eql(60); });"] } }]
+        },
+        {
+          "name": "18. Generate New Plan (accounts for remaining people)",
+          "request": { "method": "POST", "header": [], "url": "{{baseUrl}}/api/evacuations/plan" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const plan = pm.response.json();", "pm.test('Has assignments for remaining people', () => pm.expect(plan.length).to.be.above(0));", "const z1Assignments = plan.filter(a => a.ZoneID === 'Z1');", "const z2Assignments = plan.filter(a => a.ZoneID === 'Z2');", "const z3Assignments = plan.filter(a => a.ZoneID === 'Z3');", "const z4Assignments = plan.filter(a => a.ZoneID === 'Z4');", "pm.test('Z1 has assignments for 90 remaining', () => { const total = z1Assignments.reduce((sum, a) => sum + a.NumberOfPeople, 0); pm.expect(total).to.be.at.most(90); });", "pm.test('Z2 has assignments for 50 remaining', () => { const total = z2Assignments.reduce((sum, a) => sum + a.NumberOfPeople, 0); pm.expect(total).to.be.at.most(50); });", "pm.test('Z3 has assignments for 50 remaining', () => { const total = z3Assignments.reduce((sum, a) => sum + a.NumberOfPeople, 0); pm.expect(total).to.be.at.most(50); });", "pm.test('Z4 has assignments for 60 remaining', () => { const total = z4Assignments.reduce((sum, a) => sum + a.NumberOfPeople, 0); pm.expect(total).to.be.at.most(60); });", "pm.test('Z1 still highest priority (most remaining)', () => { const z1Index = plan.findIndex(a => a.ZoneID === 'Z1'); pm.expect(z1Index).to.be.below(plan.findIndex(a => a.ZoneID === 'Z4')); });"] } }]
+        },
+        {
+          "name": "19. Update Z1 - V4 picks up 40 more",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/evacuations/update", "body": { "mode": "raw", "raw": "{\n  \"ZoneID\": \"Z1\",\n  \"VehicleID\": \"V4\",\n  \"EvacueesMoved\": 40\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const b = pm.response.json(); pm.test('TotalEvacuated = 100', () => pm.expect(b.TotalEvacuated).to.eql(100));", "pm.test('RemainingPeople = 50', () => pm.expect(b.RemainingPeople).to.eql(50));"] } }]
+        },
+        {
+          "name": "20. Update Z1 - V6 picks up remaining 50",
+          "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{baseUrl}}/api/evacuations/update", "body": { "mode": "raw", "raw": "{\n  \"ZoneID\": \"Z1\",\n  \"VehicleID\": \"V6\",\n  \"EvacueesMoved\": 50\n}" } },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const b = pm.response.json(); pm.test('Z1 Fully evacuated', () => pm.expect(b.RemainingPeople).to.eql(0));", "pm.test('TotalEvacuated = 150', () => pm.expect(b.TotalEvacuated).to.eql(150));"] } }]
+        },
+        {
+          "name": "21. Generate Final Plan (Z1 should not be assigned)",
+          "request": { "method": "POST", "header": [], "url": "{{baseUrl}}/api/evacuations/plan" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const plan = pm.response.json();", "const z1Assignments = plan.filter(a => a.ZoneID === 'Z1');", "pm.test('Z1 has no assignments (fully evacuated)', () => pm.expect(z1Assignments.length).to.eql(0));", "pm.test('Other zones still have assignments', () => { const otherAssignments = plan.filter(a => a.ZoneID !== 'Z1'); pm.expect(otherAssignments.length).to.be.above(0); });"] } }]
+        },
+        {
+          "name": "22. Check Final Status",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/api/evacuations/status" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('200', () => pm.response.to.have.status(200));", "const statuses = pm.response.json();", "const z1 = statuses.find(s => s.ZoneID === 'Z1');", "pm.test('Z1 fully evacuated', () => { pm.expect(z1.TotalEvacuated).to.eql(150); pm.expect(z1.RemainingPeople).to.eql(0); });", "pm.test('Total evacuated across all zones > 0', () => { const total = statuses.reduce((sum, s) => sum + s.TotalEvacuated, 0); pm.expect(total).to.be.above(0); });"] } }]
+        },
+        {
+          "name": "23. Clear All",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/evacuations/clear" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('204', () => pm.response.to.have.status(204));"] } }]
+        }
+      ]
     }
   ]
 }

@@ -1,8 +1,8 @@
-import { VehicleRepository } from '../repositories/vehicleRepository';
-import { Vehicle } from '../models';
-import { prisma } from '../utils/prisma';
+import { VehicleRepository } from '../../repositories/vehicleRepository';
+import { Vehicle } from '../../models';
+import { prisma } from '../../utils/prisma';
 
-jest.mock('../utils/prisma', () => ({
+jest.mock('../../utils/prisma', () => ({
   prisma: {
     vehicle: {
       create: jest.fn(),
@@ -12,7 +12,7 @@ jest.mock('../utils/prisma', () => ({
   },
 }));
 
-jest.mock('../utils/config', () => ({
+jest.mock('../../utils/config', () => ({
   logger: { info: jest.fn(), error: jest.fn() },
   redis: { on: jest.fn(), quit: jest.fn() },
 }));

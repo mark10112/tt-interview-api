@@ -1,18 +1,18 @@
-import { EvacuationService } from '../services';
-import { ZoneRepository, VehicleRepository, PlanRepository, StatusRepository } from '../repositories';
-import { GeoService } from '../services';
-import { EvacuationZone, Vehicle, EvacuationStatus } from '../models';
-import { redis } from '../utils/config';
+import { EvacuationService } from '../../services';
+import { ZoneRepository, VehicleRepository, PlanRepository, StatusRepository } from '../../repositories';
+import { GeoService } from '../../services';
+import { EvacuationZone, Vehicle, EvacuationStatus } from '../../models';
+import { redis } from '../../utils/config';
 
-jest.mock('../utils/config', () => ({
+jest.mock('../../utils/config', () => ({
   logger: { info: jest.fn(), error: jest.fn() },
   redis: { on: jest.fn(), quit: jest.fn() }
 }));
-jest.mock('../repositories/zoneRepository');
-jest.mock('../repositories/vehicleRepository');
-jest.mock('../repositories/planRepository');
-jest.mock('../repositories/statusRepository');
-jest.mock('../services/geoService');
+jest.mock('../../repositories/zoneRepository');
+jest.mock('../../repositories/vehicleRepository');
+jest.mock('../../repositories/planRepository');
+jest.mock('../../repositories/statusRepository');
+jest.mock('../../services/geoService');
 
 describe('EvacuationService', () => {
   beforeEach(() => {

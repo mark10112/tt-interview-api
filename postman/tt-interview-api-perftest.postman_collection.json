@@ -1,0 +1,344 @@
+{
+  "info": {
+    "name": "TT Interview API - Performance Tests",
+    "description": "Performance/load test collection.\n\nFlow per iteration (self-contained, safe for multi-VU):\n  1. Add Zone (unique ID per VU+iteration)\n  2. Add Vehicle (unique ID per VU+iteration)\n  3. Generate Plan  -> initializes status record for the zone\n  4. Get Status\n  5. Update Status  -> uses the zone created in step 1\n  6. Stress: Duplicate Zone (409)\n  7. Stress: Validation errors (400)\n\nSetup/Teardown folders run ONCE before/after the load test, never per-iteration.\nNo shared state between VUs. No clear inside the loop.\n\nRun with Newman (single-threaded):\n  newman run tt-interview-api-perftest.postman_collection.json -n 50 --delay-request 0\n\nRun Setup/Teardown separately:\n  newman run tt-interview-api-perftest.postman_collection.json --folder 'Setup - Clear State'\n  newman run tt-interview-api-perftest.postman_collection.json --folder 'Teardown - Clear State'\n\nThresholds:\n  - Happy path  < 200ms\n  - Plan        < 500ms\n  - Error paths < 500ms",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "responseTimeThresholdFast", "value": "200" },
+    { "key": "responseTimeThresholdPlan", "value": "500" },
+    { "key": "responseTimeThresholdError", "value": "500" },
+    { "key": "iterationZoneId", "value": "" },
+    { "key": "iterationVehicleId", "value": "" },
+    { "key": "vuSuffix", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Generate a unique ID per VU+iteration to avoid collisions when running with multiple VUs.",
+          "// pm.info.iteration alone is shared across VUs in Postman Cloud load tests.",
+          "if (!pm.collectionVariables.get('vuSuffix')) {",
+          "  pm.collectionVariables.set('vuSuffix', Math.random().toString(36).slice(2, 7));",
+          "}",
+          "const iter = pm.info.iteration;",
+          "const vu = pm.collectionVariables.get('vuSuffix');",
+          "pm.collectionVariables.set('iterationZoneId', 'Z_' + vu + '_' + iter);",
+          "pm.collectionVariables.set('iterationVehicleId', 'V_' + vu + '_' + iter);"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Setup - Clear State",
+      "description": "Run ONCE before starting the load test, not per-iteration. Running this during a multi-VU test will wipe other VUs' data and cause 404s on plan/update.",
+      "item": [
+        {
+          "name": "Clear All Data",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/evacuations/clear"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PERF] Clear - Status 204', () => pm.response.to.have.status(204));",
+                  "pm.test('[PERF] Clear - Response time < ' + pm.collectionVariables.get('responseTimeThresholdFast') + 'ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(parseInt(pm.collectionVariables.get('responseTimeThresholdFast')));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Throughput - Add Zone",
+      "item": [
+        {
+          "name": "POST /api/evacuation-zones (unique per iteration)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/evacuation-zones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ZoneID\": \"{{iterationZoneId}}\",\n  \"LocationCoordinates\": { \"latitude\": 13.7563, \"longitude\": 100.5018 },\n  \"NumberOfPeople\": 100,\n  \"UrgencyLevel\": 5\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PERF] Add Zone - Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('[PERF] Add Zone - Response time < ' + pm.collectionVariables.get('responseTimeThresholdFast') + 'ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(parseInt(pm.collectionVariables.get('responseTimeThresholdFast')));",
+                  "});",
+                  "pm.test('[PERF] Add Zone - ZoneID matches', () => {",
+                  "  pm.expect(pm.response.json().ZoneID).to.eql(pm.collectionVariables.get('iterationZoneId'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Throughput - Add Vehicle",
+      "item": [
+        {
+          "name": "POST /api/vehicles (unique per iteration)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/vehicles",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"VehicleID\": \"{{iterationVehicleId}}\",\n  \"Capacity\": 50,\n  \"Type\": \"bus\",\n  \"LocationCoordinates\": { \"latitude\": 13.8, \"longitude\": 100.6 },\n  \"Speed\": 60\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PERF] Add Vehicle - Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('[PERF] Add Vehicle - Response time < ' + pm.collectionVariables.get('responseTimeThresholdFast') + 'ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(parseInt(pm.collectionVariables.get('responseTimeThresholdFast')));",
+                  "});",
+                  "pm.test('[PERF] Add Vehicle - VehicleID matches', () => {",
+                  "  pm.expect(pm.response.json().VehicleID).to.eql(pm.collectionVariables.get('iterationVehicleId'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Throughput - Generate Plan",
+      "item": [
+        {
+          "name": "POST /api/evacuations/plan",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/evacuations/plan"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PERF] Generate Plan - Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('[PERF] Generate Plan - Response time < ' + pm.collectionVariables.get('responseTimeThresholdPlan') + 'ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(parseInt(pm.collectionVariables.get('responseTimeThresholdPlan')));",
+                  "});",
+                  "pm.test('[PERF] Generate Plan - Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const plan = pm.response.json();",
+                  "if (plan.length > 0) {",
+                  "  pm.test('[PERF] Generate Plan - Assignment has required fields', () => {",
+                  "    pm.expect(plan[0]).to.have.all.keys('ZoneID', 'VehicleID', 'ETA', 'NumberOfPeople');",
+                  "  });",
+                  "}",
+                  "// plan now initializes status records for new zones (needed = zone.NumberOfPeople when no prior status exists).",
+                  "// This means iterationZoneId will have a status record after this step, enabling the update step."
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Throughput - Get Status",
+      "item": [
+        {
+          "name": "GET /api/evacuations/status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/evacuations/status"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PERF] Get Status - Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('[PERF] Get Status - Response time < ' + pm.collectionVariables.get('responseTimeThresholdFast') + 'ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(parseInt(pm.collectionVariables.get('responseTimeThresholdFast')));",
+                  "});",
+                  "pm.test('[PERF] Get Status - Returns array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const statuses = pm.response.json();",
+                  "if (statuses.length > 0) {",
+                  "  pm.test('[PERF] Get Status - Entry has required fields', () => {",
+                  "    pm.expect(statuses[0]).to.have.all.keys('ZoneID', 'TotalEvacuated', 'RemainingPeople');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Throughput - Update Status",
+      "item": [
+        {
+          "name": "PUT /api/evacuations/update",
+          "description": "Uses iterationZoneId whose status record is initialized by the Generate Plan step in this same iteration.",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/evacuations/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ZoneID\": \"{{iterationZoneId}}\",\n  \"VehicleID\": \"{{iterationVehicleId}}\",\n  \"EvacueesMoved\": 10\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PERF] Update Status - Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('[PERF] Update Status - Response time < ' + pm.collectionVariables.get('responseTimeThresholdFast') + 'ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(parseInt(pm.collectionVariables.get('responseTimeThresholdFast')));",
+                  "});",
+                  "const b = pm.response.json();",
+                  "pm.test('[PERF] Update Status - TotalEvacuated > 0', () => pm.expect(b.TotalEvacuated).to.be.above(0));",
+                  "pm.test('[PERF] Update Status - RemainingPeople >= 0', () => pm.expect(b.RemainingPeople).to.be.at.least(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Stress - Duplicate Zone (409 path)",
+      "item": [
+        {
+          "name": "POST /api/evacuation-zones (duplicate - error path perf)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/evacuation-zones",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ZoneID\": \"{{iterationZoneId}}\",\n  \"LocationCoordinates\": { \"latitude\": 13.7563, \"longitude\": 100.5018 },\n  \"NumberOfPeople\": 100,\n  \"UrgencyLevel\": 3\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PERF] Duplicate Zone - Status 409', () => pm.response.to.have.status(409));",
+                  "pm.test('[PERF] Duplicate Zone - Response time < ' + pm.collectionVariables.get('responseTimeThresholdError') + 'ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(parseInt(pm.collectionVariables.get('responseTimeThresholdError')));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Stress - Validation Error (400 path)",
+      "item": [
+        {
+          "name": "POST /api/evacuation-zones (invalid body - error path perf)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/evacuation-zones",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PERF] Validation Error - Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('[PERF] Validation Error - Response time < ' + pm.collectionVariables.get('responseTimeThresholdError') + 'ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(parseInt(pm.collectionVariables.get('responseTimeThresholdError')));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/evacuations/update (missing ZoneID - error path perf)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/evacuations/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"VehicleID\": \"V1\",\n  \"EvacueesMoved\": 10\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PERF] Update Missing ZoneID - Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('[PERF] Update Missing ZoneID - Response time < ' + pm.collectionVariables.get('responseTimeThresholdError') + 'ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(parseInt(pm.collectionVariables.get('responseTimeThresholdError')));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Teardown - Clear State",
+      "description": "Run ONCE after the load test completes, not per-iteration.",
+      "item": [
+        {
+          "name": "Clear All Data (teardown)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/evacuations/clear"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[PERF] Teardown Clear - Status 204', () => pm.response.to.have.status(204));",
+                  "pm.test('[PERF] Teardown Clear - Response time < ' + pm.collectionVariables.get('responseTimeThresholdFast') + 'ms', () => {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(parseInt(pm.collectionVariables.get('responseTimeThresholdFast')));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

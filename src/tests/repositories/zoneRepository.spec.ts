@@ -1,9 +1,9 @@
-import { ZoneRepository } from '../repositories/zoneRepository';
-import { EvacuationZone } from '../models';
-import { prisma } from '../utils/prisma';
-import { redis } from '../utils/config';
+import { ZoneRepository } from '../../repositories/zoneRepository';
+import { EvacuationZone } from '../../models';
+import { prisma } from '../../utils/prisma';
+import { redis } from '../../utils/config';
 
-jest.mock('../utils/prisma', () => ({
+jest.mock('../../utils/prisma', () => ({
   prisma: {
     zone: {
       create: jest.fn(),
@@ -14,7 +14,7 @@ jest.mock('../utils/prisma', () => ({
   },
 }));
 
-jest.mock('../utils/config', () => ({
+jest.mock('../../utils/config', () => ({
   logger: { info: jest.fn(), error: jest.fn() },
   redis: {
     on: jest.fn(),

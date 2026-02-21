@@ -10,12 +10,12 @@ import { VEHICLE_SCORE_PENALTY, ERROR_MESSAGES, HTTP_STATUS } from '../utils/con
  */
 function scoreVehicle(vehicle: Vehicle, zone: EvacuationZone, needed: number): { score: number; distKm: number } {
   const distKm = GeoService.haversineDistance(vehicle.LocationCoordinates, zone.LocationCoordinates);
-const capacityPenalty =
-  vehicle.Capacity < needed
-    ? VEHICLE_SCORE_PENALTY.UNDER_CAPACITY * (needed / vehicle.Capacity)
-    : vehicle.Capacity > needed * VEHICLE_SCORE_PENALTY.OVER_CAPACITY_MULTIPLIER
-      ? VEHICLE_SCORE_PENALTY.OVER_CAPACITY
-      : 0;
+  const capacityPenalty =
+    vehicle.Capacity < needed
+      ? VEHICLE_SCORE_PENALTY.UNDER_CAPACITY * (needed / vehicle.Capacity)
+      : vehicle.Capacity > needed * VEHICLE_SCORE_PENALTY.OVER_CAPACITY_MULTIPLIER
+        ? VEHICLE_SCORE_PENALTY.OVER_CAPACITY
+        : 0;
   return { score: distKm + capacityPenalty, distKm };
 }
 

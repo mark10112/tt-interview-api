@@ -25,3 +25,6 @@ dist/
 
 .demo-script.md
 demo/
+
+# Test coverage
+coverage/

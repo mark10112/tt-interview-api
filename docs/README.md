@@ -128,4 +128,3 @@ Plans)
 - **Business Logic หลัก** — Vehicle Scoring Algorithm, Urgency-first Allocation, และ logic การจับคู่ยานพาหนะกับโซนใน `EvacuationService`
 - **Architecture Design** — การออกแบบ layered architecture (Controller → Service → Repository), การเลือก Tech Stack
 - **Data Model** — การออกแบบ Zod schemas และ Prisma models ให้สอดคล้องกับ requirement
-- **API Design** — การออกแบบ endpoints และ request/response format

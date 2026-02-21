@@ -77,6 +77,41 @@ docker-compose up -d
 
 ---
 
+## CI/CD Pipeline
+
+```
+push to master
+      │
+      ▼
+┌─────────────────────────┐
+│  CI — ci.yml            │
+│  (GitHub Actions)       │
+│  1. npm ci              │
+│  2. prisma generate     │
+│  3. npm test (Jest)     │
+│     └─ coverage > 95%  │
+└──────────┬──────────────┘
+           │ success
+           ▼
+┌─────────────────────────┐
+│  CD — azure-deploy.yml  │
+│  (GitHub Actions)       │
+│  1. Docker build        │
+│  2. Push image to ACR   │
+│  3. Deploy to Azure     │
+│     Web App             │
+└─────────────────────────┘
+```
+
+| Workflow | ไฟล์ | Trigger | หน้าที่ |
+|---|---|---|---|
+| CI | `.github/workflows/ci.yml` | push / PR → master | รัน tests + coverage ≥ 95% |
+| CD | `.github/workflows/azure-deploy.yml` | หลัง CI ผ่าน | Build Docker → ACR → Azure Web App |
+
+> CD จะทำงานก็ต่อเมื่อ CI ผ่านเท่านั้น (`workflow_run: conclusion == 'success'`)
+
+---
+
 ## Architecture Diagram
 
 ```
